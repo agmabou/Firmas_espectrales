@@ -1,0 +1,49 @@
+//HAY QUE IMPORTAR LOS .SHP DE: LOS ROI DE CADA CATEGORIA, MASCARA DE LA ZONA DE ESTUDIO//
+
+-> Ir a Asset > New > Shape Files > SUBIR TODOS LOS ARCHIVOS DE LA CARPETA DEL POLIGONO
+-> Ir a Asset> New > Shape Files >
+
+// DEBERIA QUEDAR ALGO ASI//
+
+var clase_1 = ee.FeatureCollection(""),
+var clase_2 = ee.FeatureCollection(""),
+var mascara_poligono = ee.FeatureCollection("");
+
+
+var Clases = ee.FeatureCollection([clase_1,clase_2,])
+print(Clases,'Clases')
+
+
+// SERIE TEMPORAL MODIS
+var modis_serie_ndvi = ee.ImageCollection('MODIS/MCD43A4_006_NDVI')
+.filterDate('AÑO-MES-DIA', 'AÑO-MES-DIA')
+
+//print(modis_serie_ndvi,'modis_serie_ndvi')
+
+
+//RECORTAR POR ZONA DE ESTUDIO EN UNA IMAGECOLLECTION
+
+var clip_modis_serie_ndvi=modis_serie_ndvi.map(function(img){
+  img= img.clip(mascara)  
+  return img})
+print(clip_modis_serie_ndvi,'clip_modis_serie_ndvi')
+
+
+//HACER EL GRAFICO DE LA SERIE TEMPORAL
+
+var serie_ndvi = ui.Chart.image.seriesByRegion(modis_serie_ndvi, Clases, ee.Reducer.mean(), 'NDVI', 250, null, 'id')
+.setSeriesNames(['clase_1','clase2'],[1,2,3,4])
+.setOptions({
+  title: 'Serie NDVI de Modis',
+  hAxis: {     title: 'Años'  },
+  vAxis: {     title: 'NDVI'  },
+  Series: {
+    1: { color: 'black'},
+    2: {color: 'green'},
+    3: {color: 'yellow'},
+    4: {color: 'blue'},
+}})
+print(serie_ndvi,'serie_ndvi')
+
+
+
