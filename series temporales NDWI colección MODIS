@@ -1,0 +1,44 @@
+// visualizar los límites del área de trabajo
+var area_de_estudio = ee.FeatureCollection(punto).style({fillColor: '00000000', width: 2})
+print(area_de_estudio,'area_de_estudio')
+Map.addLayer({eeObject: area_de_estudio,name:'zona_tele'})
+Map.centerObject(mascara_delta,7)
+
+
+// Para visualizar la firma espectral de una geometría
+var Clases = ee.FeatureCollection([lagunas,vegsana,vegquemada,rioParana])
+print(Clases,'Clases')
+
+// Serie Temporal NDVI Modis
+
+
+var modis_serie_ndwi = ee.ImageCollection('MODIS/MCD43A4_006_NDWI')
+.filterDate('2007-01-01', '2007-12-31');
+
+print(modis_serie_ndwi,'modis_serie_ndwi')
+
+//Recortar por zona de estudio en una ImageCollection
+
+var clip_modis_serie_ndwi=modis_serie_ndwi.map(function(img){
+  img= img.clip(mascara_delta)
+  
+  return img})
+print(clip_modis_serie_ndwi,'clip_modis_serie_ndwi')
+
+
+
+//Gráfico serie temporal
+
+var serie_ndwi = ui.Chart.image.seriesByRegion(modis_serie_ndwi, Clases, ee.Reducer.mean(), 'NDWI', 250, null, 'id')
+.setSeriesNames(['Agua de Lagunas','Vegetacion sana','Vegetacion quemada','Agua del rio Parana'],[1,2,3,4])
+.setOptions({
+  title: 'Serie NDWI de Modis',
+  hAxis: {     title: 'Años'  },
+  vAxis: {     title: 'NDWI'  },
+  Series: {
+    1: { color: 'black'},
+    2: {color: 'green'},
+    3: {color: 'yellow'},
+    4: {color: 'blue'},
+}})
+print(serie_ndwi,'serie_ndwi')
