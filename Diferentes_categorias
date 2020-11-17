@@ -1,0 +1,263 @@
+// visualizar los límites del área de trabajo
+//var area_de_estudio = ee.FeatureCollection(punto).style({fillColor: '00000000', width: 2})
+//print(area_de_estudio,'area_de_estudio')
+// Map.addLayer({eeObject: area_de_estudio,name:'zona_tele'})
+// Map.centerObject(table4,7)
+
+// Buscamos nuestra imagen Landsat de interes dentro de la Colección de imagenes Landsat 8 SR
+
+var coleccion_Landsat8= ee.ImageCollection('LANDSAT/LC08/C01/T1_SR')
+.filterBounds(punto)
+.select('B[2-7]')
+.filterDate('2008-01-01','2020-10-30')
+.filterMetadata("CLOUD_COVER", "less_than", 10)
+
+//print(coleccion_Landsat8,'Coleccion_Landsat8')
+
+
+// Trabajaremos con la imagen Landsat 8 buscada previamente
+
+var Landsat8= ee.Image('LANDSAT/LC08/C01/T1_SR/LC08_227083_20200928')
+.select(['B2','B3','B4','B5','B6','B7']);
+
+//print(Landsat8,'Landsat8')
+// Map.addLayer({eeObject: Landsat8, visParams: {min: 310.12, max: 1467.88, bands:['B4','B3','B2']}, name: 'Landsat8' })
+// Map.addLayer({eeObject: Landsat8, visParams: {},name: 'Landsat8'})
+
+// Export.image.toDrive({image: Landsat8, description: 'Landsat8_20200928_SR', scale: 30, maxPixels: 1e12})
+
+//Cortar la imagen según el área de estudio
+var subset_Landsat8= Landsat8.clip(mascara_delta)
+//print(subset_Landsat8,'subset_Landsat8')
+//Map.addLayer({eeObject: subset_Landsat8, visParams: {min: 310.12, max: 1467.88, bands:['B4','B3','B2']}, name: 'subset_Landsat8' })
+
+// Para visualizar la firma espectral de una geometría
+var Clases = ee.FeatureCollection([lagunas,vegsana,vegquemada,rioParana])
+//print(Clases,'Clases')
+
+//var Firma_Espectral = ui.Chart.image.regions({ 
+//image: Landsat8,  
+  //regions: Clases,  
+  //scale: 30, 
+  //seriesProperty:'id'})
+   
+//.setChartType('LineChart')
+//.setSeriesNames(['Lagunas','Vegetacion Sana','Vegetacion Quemada','Agua del Rio'],[1,2,3,4])
+//.setOptions({
+  //title: 'Landsat 8 SR firma espectral de 4 clases para la zona del delta',
+  //hAxis: {     title: 'Bandas'  },
+  //vAxis: {     title: 'Reflectancia'  },
+  //lineWidth: 2,
+  //pointSize: 4,
+  //series: {
+    //1: {color: 'black'},
+    //2: {color: 'green'},
+    //3: {color: 'yellow'},
+    //4: {color: 'blue'},
+  //}})
+  
+//print(Firma_Espectral, 'Firma_Espectral')
+
+
+
+// Para hacer un indice sobre la imagen
+var NDVI = subset_Landsat8.normalizedDifference(['B5', 'B4']).rename('NDVI')
+print('NDVI', NDVI)
+//Map.addLayer(NDVI, {palette: ['red', 'orange', 'yellow', 'pink', 'green', 'black']}, 'NDVI')
+//Export.image.toDrive({image:NDVI, description: 'NDVI_20200928_SR', scale: 30, maxPixels: 1e12})
+
+////////////EVI///////////////////////
+
+// var Evi =  subset_Landsat8.expression( '2.5*(nir-red)/(nir+red*C-B*blue+L)', 
+// {
+//   nir : subset_Landsat8.select('B5'),
+//   red : subset_Landsat8.select('B4'), 
+//   blue: subset_Landsat8.select('B2'), 
+//   C : 6,
+//   B : 7.5,
+//   L : 1
+// }).rename('EVI')
+
+
+// print('Evi', Evi)
+// Map.addLayer(Evi, {}, 'Evi')
+
+
+
+/////////////NDWI///////////////////
+
+//var NDWI =subset_Landsat8.normalizedDifference(['B5', 'B6'])
+//print('NDWI', NDWI)
+ //Map.addLayer(NDWI, {min: -0.43853965640068054, max: 0.8800842487812042, palette: ['red', 'orange', 'yellow', 'pink', 'green', 'black']}, 'NDWI')
+
+
+
+///////AREAS QUEMADAS NBRI////////////////
+
+//var NBRI= subset_Landsat8.expression( '(nir-swir2)/(nir+swir2)' , 
+ //{
+   //nir : subset_Landsat8.select('B5'),
+   //swir2 : subset_Landsat8.select('B7')
+ //}).rename('NBRI')
+
+ //print('NBRI', NBRI)
+
+ //Map.addLayer(NBRI, {min: -0.4619230127334595, max: 0.904858717918396, palette: ['red', 'orange', 'yellow', 'pink', 'green', 'black']}, 'NBRI')
+
+
+// Para hacer mascaras con NDVI sobre la imagen
+
+//var subset_Landsat8_mascara_NDVI_valores_mayores_015 = subset_Landsat8.mask(NDVI.gte(0.15))
+//print(subset_Landsat8_mascara_NDVI_valores_mayores_015,'subset_Landsat8_mascara_NDVI_valores_mayores_015')
+//Map.addLayer(subset_Landsat8_mascara_NDVI_valores_mayores_015,  {min: 335.57, max: 786.84, bands:['B4','B3','B2']}, 'subset_Landsat8_mascara_NDVI_valores_mayores_015')
+
+
+
+// /Para valores menores a
+
+//var subset_Landsat8_mascara_NDVI_valores_menores_015=subset_Landsat8.mask(NDVI.lte(0.15))
+//print(subset_Landsat8_mascara_NDVI_valores_menores_015,'subset_Landsat8_mascara_NDVI_valores_menores_015')
+//Map.addLayer(subset_Landsat8_mascara_NDVI_valores_menores_015, {min: 136.90, max: 972.02, bands:['B4','B3','B2']}, 'subset_Landsat8_mascara_NDVI_valores_menores_015')
+
+
+
+// /Para valores entre
+
+//var subset_Landsat8_mascara_NDVI_valores_entre_02y_1 = subset_Landsat8.mask(NDVI.gte(0.2).and(NDVI.lte(1)))
+//print(subset_Landsat8_mascara_NDVI_valores_entre_02y_1,'subset_Landsat8_mascara_NDVI_valores_entre_02y_1')
+//Map.addLayer( subset_Landsat8_mascara_NDVI_valores_entre_02y_1, {min: 335.57, max: 786.84, bands:['B4','B3','B2']}, ' subset_Landsat8_mascara_NDVI_valores_entre_02y_1')
+
+
+// Clasificación NO supervisada
+// var entrenamiento= subset_Landsat8.sample({
+//   scale:30,
+//   numPixels: 100  
+//   })
+// var clasificacion_kmeans=ee.Clusterer.wekaKMeans({nClusters:100, maxIterations:10000, seed: 10000}).train(entrenamiento)
+
+// var resultado_clasificacion= subset_Landsat8_mascara_NDVI_valores_mayores_015.cluster(clasificacion_kmeans)
+
+// Map.addLayer(resultado_clasificacion.randomVisualizer(),{},'Clasificacion Kmeans')
+
+// Export.image.toDrive({image: resultado_clasificacion, description: 'Clasificacion_Kmeans_100', scale: 30, maxPixels: 1e12})
+
+
+// Serie Temporal NDVI Modis
+var modis_serie_ndvi = ee.ImageCollection('MODIS/MCD43A4_006_NDVI')
+.filterDate('2017-01-01', '2018-12-28')
+
+//print(modis_serie_ndvi,'modis_serie_ndvi')
+
+
+
+//Recortar por zona de estudio en una ImageCollection
+
+var clip_modis_serie_ndvi=modis_serie_ndvi.map(function(img){
+  img= img.clip(mascara_delta)
+  
+  return img})
+print(clip_modis_serie_ndvi,'clip_modis_serie_ndvi')
+
+//Map.addLayer(clip_modis_serie_ndvi.mean(), { palette: 
+  //  ['FFFFFF', 'CE7E45', 'DF923D', 'F1B555', 'FCD163', '99B718', '74A901',
+    //'66A000', '529400', '3E8601', '207401', '056201', '004C00', '023B01',
+    //'012E01', '011D01', '011301'
+  //]}, 'Modis_NDVI')
+  
+
+//Gráfico serie temporal
+
+var serie_ndvi = ui.Chart.image.seriesByRegion(modis_serie_ndvi, Clases, ee.Reducer.mean(), 'NDVI', 250, null, 'id')
+.setSeriesNames(['Agua de Lagunas','Vegetacion sana','Vegetacion quemada','Agua del rio Parana'],[1,2,3,4])
+.setOptions({
+  title: 'Serie NDVI de Modis',
+  hAxis: {     title: 'Años'  },
+  vAxis: {     title: 'NDVI'  },
+  Series: {
+    1: { color: 'black'},
+    2: {color: 'green'},
+    3: {color: 'yellow'},
+    4: {color: 'blue'},
+}})
+print(serie_ndvi,'serie_ndvi')
+
+
+
+// Serie Temporal Sentinel 5 Aerosol index
+
+// var Sentinel5_serie_Aerosol_index=ee.ImageCollection("COPERNICUS/S5P/OFFL/L3_AER_AI")
+//   .filterBounds(punto)
+//   .filterDate('2020-08-01', '2020-08-30')
+//   .select('absorbing_aerosol_index')
+   
+// print(Sentinel5_serie_Aerosol_index,'Sentinel5_serie_Aerosol_index')
+
+
+// //Recortar por zona de estudio en una ImageCollection
+// var clip_Sentinel5_serie_Aerosol_index=Sentinel5_serie_Aerosol_index.map(function(img){
+//   img= img.clip(table4)
+  
+//   return img})
+// print(clip_Sentinel5_serie_Aerosol_index,'clip_Sentinel5_serie_Aerosol_index')
+
+// Map.addLayer(clip_Sentinel5_serie_Aerosol_index.mean(), { min: -1.3764, max: -1.0266, palette:[
+//   'black', 'blue', 'purple', 'cyan', 'green', 'yellow', 'red']}, 'S5P Aerosol')
+  
+
+
+// //Gráfico serie temporal
+// var serie_aerosol_index = ui.Chart.image.seriesByRegion(clip_Sentinel5_serie_Aerosol_index, Clases, ee.Reducer.mean(), 'absorbing_aerosol_index',250 , null, 'id')
+// .setSeriesNames(['agua','vegetacion'],[1,2])
+// .setOptions({
+//   title: 'Serie de Aerosol Index',
+//   hAxis: {     title: 'Años'  },
+//   vAxis: {     title: 'aerosol'  }
+// })
+// print(serie_aerosol_index,'serie_aerosol_index')
+
+
+
+// Serie Multitemporal de NDVI con Landsat 8
+
+// var serie_Landsat8= ee.ImageCollection('LANDSAT/LC08/C01/T1_SR')
+// .filterBounds(table4)
+// .select('B[2-7]')
+// .filterDate('2008-01-01','2020-10-20')
+// .filterMetadata("CLOUD_COVER", "less_than", 10)
+
+// print(serie_Landsat8,'serie_Landsat8')
+
+
+
+// NDVI
+
+// var serie_ndvi_Landsat8=serie_Landsat8.filterMetadata('CLOUD_COVER', 'less_than', 1).map(function(img){
+//   var ndvi = img.normalizedDifference(['B5', 'B4']).rename('NDVI')
+//   img = img.addBands(ndvi)
+  
+//   return img.select(['NDVI']).clip(table4)
+// })
+
+// print('serie_ndvi_Landsat8', serie_ndvi_Landsat8)
+
+// Map.addLayer(serie_ndvi_Landsat8.mean(),{palette: ['red', 'orange', 'yellow', 'pink', 'green', 'black']},'serie_ndvi_Landsat8')
+
+// //Gráfico
+
+// var serie_ndvi_Landsat8 = ui.Chart.image.seriesByRegion(serie_ndvi_Landsat8, Clases, ee.Reducer.mean(), 'NDVI', 30, null, 'id')
+// .setSeriesNames([lagunas,vegsana,vegquemada,rioParana],[1,2,3,4])
+// .setOptions({
+//   title: 'Serie NDVI de Landsat 8' ,
+//   hAxis: {     title: 'Años'  },
+//   vAxis: {     title: 'NDVI' },
+//   lineWidth: 2,
+//   pointSize: 4,
+//   series: {
+//     1: {color: 'black'},
+//     2: {color: 'green'},
+//     3: {color: 'yellow'},
+//     4: {color: 'blue'},
+// }})
+// print(serie_ndvi_Landsat8,'serie_ndvi_Landsat8')
+
+
