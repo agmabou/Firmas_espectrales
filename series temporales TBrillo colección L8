@@ -1,0 +1,40 @@
+//importo la zona de estudio
+var neuquen_1 = ee.FeatureCollection("users/agus/Poligonos_neuquen/20161120");
+
+//defino la colección
+var n_l8 = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR')
+.filterDate ('2016-01-09', '2020-11-10')//filtro por fecha
+.filterMetadata ('CLOUD_COVER', 'Less_Than', 50);//filtro por año
+//print(n_l8,'N_l8') esto lo comente porque son muchas imgs y no lo hace
+
+//RECORTAR POR ZONA DE ESTUDIO EN UNA IMAGECOLLECTION
+
+var clip_l8_=n_l8.map(function(img){
+  img= img.clip(neuquen_1)  
+  return img})
+//print(clip_l8_,'clip_l8_')esto lo comente porque son muchas imgs y no lo hace
+
+
+//Conviero la T° de brillo en Kelvin a Celsius 
+var l8nn = n_l8.select('B10','B11'); //selecciono las bandas termicas
+var l8nn_c = l8nn.map(function(img) {
+  return img
+    .multiply(0.1)
+    .subtract(273.15)
+    .copyProperties(img, ['system:time_start']);
+});
+
+
+// Grafico de serie temporal para brillo en celsius para el periodo 2016-2020.
+var st_brillo = ui.Chart.image.series({
+  imageCollection: l8nn_c,
+  region: neuquen_1,
+  reducer: ee.Reducer.mean(),
+  scale: 1000,
+  xProperty: 'system:time_start'})
+  .setOptions({
+     title: 'Serie Temporal Brillo',
+     vAxis: {title: 'Celsius'},
+     hAxis: {title: 'años'}
+  });
+print(st_brillo);
